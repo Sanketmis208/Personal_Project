@@ -13,6 +13,222 @@
     <script type="text/javascript" src="file/jscex-async-powerpack.min.js"></script>
     <script type="text/javascript" src="file/function.js" charset="utf-8"></script>
     <script type="text/javascript" src="file/love.js" charset="utf-8"></script>
+<style>
+    /* Floating Hearts Background */
+    .hearts-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+    }
+
+    /* Make sure main content has proper z-index */
+    #main {
+        position: relative;
+        z-index: 10;
+    }
+
+    #wrap {
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Gallery Grid Style */
+    .photo-gallery {
+        padding: 60px 20px;
+        max-width: 1200px;
+        margin: 40px auto;
+        position: relative;
+        z-index: 10;
+    }
+
+    .gallery-title {
+        font-size: 2.5em;
+        text-align: center;
+        margin-bottom: 40px;
+        color: #ffd700;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+    }
+
+    .photo-card {
+        position: relative;
+        overflow: hidden;
+        border-radius: 15px;
+        cursor: pointer;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        transition: all 0.4s ease;
+    }
+
+    .photo-card:hover {
+        transform: translateY(-10px) scale(1.03);
+        box-shadow: 0 12px 35px rgba(255, 105, 180, 0.5);
+    }
+
+    .photo-card img {
+        width: 100%;
+        height: 320px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.4s ease;
+    }
+
+    .photo-card:hover img {
+        transform: scale(1.1);
+    }
+
+    .photo-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 105, 180, 0.85);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .photo-card:hover .photo-overlay {
+        opacity: 1;
+    }
+
+    .photo-overlay span {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: white;
+    }
+
+    /* Lightbox */
+    .lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .lightbox.active {
+        display: flex;
+    }
+
+    .lightbox-content {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        animation: zoomIn 0.3s ease;
+    }
+
+    @keyframes zoomIn {
+        from {
+            transform: scale(0.5);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 30px;
+        right: 50px;
+        font-size: 3em;
+        color: white;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+
+    .lightbox-close:hover {
+        color: #ff69b4;
+    }
+
+    .lightbox-nav button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 105, 180, 0.8);
+        color: white;
+        border: none;
+        font-size: 2em;
+        padding: 20px 30px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        border-radius: 10px;
+    }
+
+    .lightbox-nav button:hover {
+        background: rgba(255, 105, 180, 1);
+    }
+
+    .lightbox-prev {
+        left: 30px;
+    }
+
+    .lightbox-next {
+        right: 30px;
+    }
+
+    /* Music Player */
+    .music-player {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+    }
+
+    .music-toggle {
+        background: linear-gradient(135deg, #ff69b4, #ff1493);
+        border: none;
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 5px 20px rgba(255, 105, 180, 0.5);
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .music-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 8px 30px rgba(255, 105, 180, 0.7);
+    }
+
+    .music-icon {
+        font-size: 2em;
+        animation: rotate 3s linear infinite;
+    }
+
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .gallery-title { font-size: 1.8em; }
+        .photo-card img { height: 250px; }
+    }
+</style>
     <script>
         function playAudio() {
             var audio = document.getElementById("myAudio");
@@ -21,6 +237,9 @@
     </script>
 </head>
 <body>
+    <!-- Floating Hearts Background -->
+    <div class="hearts-background" id="heartsBackground"></div>
+
     <div id="main">
         <div id="error"><a href="http://www.google.cn/chrome/intl/zh-CN/landing_chrome.html?hl=zh-CN&brand=CHMI">Chrome</a> (<a href="http://firefox.com.cn/download/">Firefox</a>)</div>
         <audio autoplay="autoplay" height="100" width="100" id="myAudio">
@@ -36,17 +255,180 @@
                     <span class="say">And give u many happiness 💕</span><br>
                     <span class="say">Just saying... you're pretty awesome ❤️</span><br>
                     <span class="say">Sending good vibes and maybe a wink 😏</span><br>
-                    <span class="say">Hope u have a great day today ❤️😘</span><br>
+                    <span class="say">Hope u have a great day today ❤️❤️</span><br>
                 </div>
             </div>
             <div id="clock-box">
-                <span id="clock">577 days 0 hours 0 minutes 0 seconds</span> <!-- Change to "6940 days..." if needed -->
+                <span id="clock">577 days 0 hours 0 minutes 0 seconds</span>
             </div>
             <canvas id="canvas" width="1100" height="680"></canvas>
         </div>
     </div>
 
+    <!-- Photo Gallery Grid -->
+    <section class="photo-gallery">
+        <h2 class="gallery-title">Beautiful Memories 📸</h2>
+        <div class="gallery-grid">
+            <div class="photo-card" onclick="openLightbox(0)">
+                <img src="photo1.JPG" alt="Memory 1">
+                <div class="photo-overlay">
+                    <span>View</span>
+                </div>
+            </div>
+            <div class="photo-card" onclick="openLightbox(1)">
+                <img src="photo2.JPG" alt="Memory 2">
+                <div class="photo-overlay">
+                    <span>View</span>
+                </div>
+            </div>
+            <div class="photo-card" onclick="openLightbox(2)">
+                <img src="photo3.JPG" alt="Memory 3">
+                <div class="photo-overlay">
+                    <span>View</span>
+                </div>
+            </div>
+            <div class="photo-card" onclick="openLightbox(3)">
+                <img src="photo4.JPG" alt="Memory 4">
+                <div class="photo-overlay">
+                    <span>View</span>
+                </div>
+            </div>
+            <div class="photo-card" onclick="openLightbox(4)">
+                <img src="photo5.JPG" alt="Memory 5">
+                <div class="photo-overlay">
+                    <span>View</span>
+                </div>
+            </div>
+                <div class="photo-card" onclick="openLightbox(5)">
+                <img src="photo6.JPG" alt="Memory 6">
+                <div class="photo-overlay">
+                    <span>View</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <img class="lightbox-content" id="lightboxImg">
+        <div class="lightbox-nav">
+            <button class="lightbox-prev" onclick="changeLightboxImage(-1)">❮</button>
+            <button class="lightbox-next" onclick="changeLightboxImage(1)">❯</button>
+        </div>
+    </div>
+
+    <!-- Music Player -->
+    <div class="music-player" id="musicPlayer">
+        <button class="music-toggle" id="musicToggle" onclick="toggleMusic()">
+            <span class="music-icon" id="musicIcon">🎵</span>
+        </button>
+    </div>
+
     <script>
+    // Floating hearts functionality
+    function createFloatingHearts() {
+        const heartsContainer = document.getElementById('heartsBackground');
+        
+        for (let i = 0; i < 15; i++) {
+            setTimeout(() => {
+                const heart = document.createElement('div');
+                heart.innerHTML = '💕';
+                heart.style.position = 'absolute';
+                heart.style.fontSize = Math.random() * 30 + 20 + 'px';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.bottom = '-50px';
+                heart.style.opacity = Math.random() * 0.5 + 0.3;
+                heart.style.animation = `floatUp ${Math.random() * 5 + 5}s linear infinite`;
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                
+                heartsContainer.appendChild(heart);
+            }, i * 200);
+        }
+    }
+
+    // Add float animation - FIXED: changed 'style' to 'floatStyle'
+    const floatStyle = document.createElement('style');
+    floatStyle.textContent = `
+        @keyframes floatUp {
+            0% {
+                bottom: -50px;
+                transform: translateX(0) rotate(0deg);
+            }
+            50% {
+                transform: translateX(${Math.random() * 100 - 50}px) rotate(180deg);
+            }
+            100% {
+                bottom: 110%;
+                transform: translateX(${Math.random() * 100 - 50}px) rotate(360deg);
+            }
+        }
+    `;
+    document.head.appendChild(floatStyle); // FIXED: changed 'style' to 'floatStyle'
+
+    // Initialize on page load
+    window.addEventListener('load', () => {
+        createFloatingHearts();
+    });
+
+    // Lightbox functionality - FIXED: renamed variables to avoid conflicts
+    let lightboxImageIndex = 0;
+    const galleryImages = ['photo1.JPG', 'photo2.JPG', 'photo3.JPG', 'photo4.JPG', 'photo5.JPG','photo6.JPG'];
+
+    function openLightbox(index) {
+        lightboxImageIndex = index;
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightboxImg');
+        
+        lightbox.classList.add('active');
+        lightboxImg.src = galleryImages[lightboxImageIndex];
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+        const lightbox = document.getElementById('lightbox');
+        lightbox.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    function changeLightboxImage(direction) {
+        lightboxImageIndex += direction;
+        
+        if (lightboxImageIndex < 0) {
+            lightboxImageIndex = galleryImages.length - 1;
+        } else if (lightboxImageIndex >= galleryImages.length) {
+            lightboxImageIndex = 0;
+        }
+        
+        document.getElementById('lightboxImg').src = galleryImages[lightboxImageIndex];
+    }
+
+    // Close lightbox with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeLightbox();
+        }
+    });
+
+    // Music player
+    let musicIsPlaying = true;
+
+    function toggleMusic() {
+        const audio = document.getElementById('myAudio');
+        const icon = document.getElementById('musicIcon');
+        
+        if (musicIsPlaying ) {
+            audio.pause();
+            icon.textContent = '🔇';
+            musicIsPlaying  = false;
+        } else {
+            audio.play();
+            icon.textContent = '🎵';
+            musicIsPlaying  = true;
+        }
+    }
+
+    // Original tree animation code
     (function() {
         var canvas = $('#canvas');
 		
